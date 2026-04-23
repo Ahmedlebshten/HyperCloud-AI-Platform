@@ -1,0 +1,27 @@
+# Terraform State & Secrets
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+
+# Keys & Credentials
+*.pem
+*.key
+.env
+.env.local
+
+# Ansible
+ansible/inventory.ini
+*.retry
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node (App folder)
+node_modules/
+dist/
+build/
