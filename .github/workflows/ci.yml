@@ -92,6 +92,10 @@ jobs:
           sudo k3s crictl rmi "docker.io/ahmedlebshten/guestbook:$VERSION" 2>/dev/null || true
           sudo k3s crictl rmi "docker.io/ahmedlebshten/guestbook:latest" 2>/dev/null || true
           
-          kubectl set image deployment/guestbook-app guestbook=ahmedlebshten/guestbook:$VERSION
+          # Apply the FULL manifest (already updated by sed in Step 4) to the cluster
+          kubectl apply -f $GITHUB_WORKSPACE/k8s-manifests/app-deployment.yml
+          
+          # Force all pods to restart and pull the fresh image
+          kubectl rollout restart deployment/guestbook-app
           
           kubectl rollout status deployment/guestbook-app
