@@ -15,7 +15,8 @@ jobs:
       - name: Clean Workspace
         run: |
           echo "Cleaning up previous runs..."
-          rm -rf "${{ github.workspace }}/*"
+          # Use find to remove ALL files including hidden dirs like .git
+          find "${{ github.workspace }}" -mindepth 1 -delete 2>/dev/null || true
 
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -24,12 +25,22 @@ jobs:
           clean: true
 
       # Step 1: Build Docker Image using GitHub Run Number (v1, v2, v3...)
+      - name: Prune Docker Cache
+        run: |
+          echo "Pruning stale Docker build cache and dangling images..."
+          docker builder prune -af || true
+          docker image prune -af || true
+
       - name: Build Docker Image
         working-directory: ./app
         run: |
           VERSION="v${{ github.run_number }}"
           echo "Building Version: $VERSION"
-          docker build --no-cache -t ahmedlebshten/guestbook:$VERSION .
+          # Verify the source code is actually the latest
+          echo "--- Source file hash ---"
+          sha256sum app.js
+          echo "------------------------"
+          docker build --no-cache --pull -t ahmedlebshten/guestbook:$VERSION .
           docker tag ahmedlebshten/guestbook:$VERSION ahmedlebshten/guestbook:latest
 
       # Step 2: Security Gate - Scan Image for Vulnerabilities
@@ -76,6 +87,10 @@ jobs:
         run: |
           VERSION="v${{ github.run_number }}"
           echo "Force updating cluster to use version $VERSION"
+          
+          # Force K3s/containerd to discard its cached copy of this image
+          sudo k3s crictl rmi "docker.io/ahmedlebshten/guestbook:$VERSION" 2>/dev/null || true
+          sudo k3s crictl rmi "docker.io/ahmedlebshten/guestbook:latest" 2>/dev/null || true
           
           kubectl set image deployment/guestbook-app guestbook=ahmedlebshten/guestbook:$VERSION
           

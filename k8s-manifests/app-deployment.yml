@@ -14,7 +14,8 @@ spec:
     spec:
       containers:
       - name: guestbook
-        image: ahmedlebshten/guestbook:v15
+        image: ahmedlebshten/guestbook:v15 
+        imagePullPolicy: Always
         ports:
         - containerPort: 3000
         # HPA
