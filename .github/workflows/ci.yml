@@ -12,6 +12,11 @@ jobs:
       contents: write
 
     steps:
+      - name: Clean Workspace
+        run: |
+          echo "Cleaning up previous runs..."
+          rm -rf "${{ github.workspace }}/*"
+
       - name: Checkout Source Code
         uses: actions/checkout@v4
         with:
