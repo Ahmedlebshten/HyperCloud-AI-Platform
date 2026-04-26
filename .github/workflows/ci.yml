@@ -68,9 +68,9 @@ jobs:
       # Step 5: Continuous Deployment - Apply the updated manifest to K3s
       - name: Apply to K3s Cluster
         run: |
-          echo "Applying the updated manifest to the production cluster..."
-          # Applying the manifest from the specific path in workspace
-          kubectl apply -f $GITHUB_WORKSPACE/k8s-manifests/app-deployment.yml
+          VERSION="v${{ github.run_number }}"
+          echo "Force updating cluster to use version $VERSION"
           
-          # Verify the rollout
+          kubectl set image deployment/guestbook-app guestbook=ahmedlebshten/guestbook:$VERSION
+          
           kubectl rollout status deployment/guestbook-app
